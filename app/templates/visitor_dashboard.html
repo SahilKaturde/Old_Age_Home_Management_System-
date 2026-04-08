@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Dashboard — Old Age Home</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="brand-icon">🏠</span>
+      <div>
+        <h1>Old Age Home</h1>
+        <div class="brand-subtitle">Visitor Portal</div>
+      </div>
+    </div>
+    <div class="navbar-info">
+      <div>
+        <div class="user-name">{{ session['name'] }}</div>
+        <div class="user-detail">Visitor</div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-msg {{ category }}">
+            {% if category == 'success' %}✓{% else %}✗{% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- MAIN CONTENT -->
+  <main class="dashboard-main">
+    <h2 class="page-title">Welcome, {{ session['name'] }}</h2>
+    <p class="page-subtitle">Manage your visit requests and connect with residents.</p>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">📋</div>
+        <div class="stat-number">{{ total_requests }}</div>
+        <div class="stat-label">Total Requests</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">{{ pending }}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number">{{ approved }}</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">❌</div>
+        <div class="stat-number">{{ rejected }}</div>
+        <div class="stat-label">Rejected</div>
+      </div>
+    </div>
+
+    <!-- SEARCH RESIDENT -->
+    <div class="section-header">
+      <h3 class="section-title">🔍 Search Resident</h3>
+    </div>
+
+    <form class="search-form" action="{{ url_for('visitor.search_resident') }}" method="GET">
+      <input type="text" name="q" placeholder="Search by resident name..." value="{{ search_query }}" required>
+      <button type="submit">Search</button>
+    </form>
+
+    <!-- SEARCH RESULTS -->
+    {% if search_results is not none and search_query %}
+      {% if search_results %}
+        <div class="resident-results">
+          {% for res in search_results %}
+            <div class="resident-card">
+              <div class="res-name">{{ res[1] }}</div>
+              <div class="res-info">🚪 Room: {{ res[2] or '—' }}</div>
+              <div class="res-info">👤 {{ res[3] or '—' }}</div>
+              <div class="res-action">
+                <button class="btn btn-primary btn-sm btn-pill btn-request-visit" 
+                        type="button"
+                        data-resident-id="{{ res[0] }}" 
+                        data-resident-name="{{ res[1] }}">
+                  📩 Request Visit
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="margin-bottom:30px;">
+          <div class="empty-icon">🔍</div>
+          <p>No residents found for "{{ search_query }}"</p>
+        </div>
+      {% endif %}
+    {% endif %}
+
+    <!-- REQUEST VISIT FORM (hidden by default, shown when a resident is selected) -->
+    <div class="request-form" id="visit-request-form" style="display:none;">
+      <h3>📩 Send Visit Request to <span id="selected-resident-name"></span></h3>
+      <form action="{{ url_for('visitor.request_visit') }}" method="POST">
+        <input type="hidden" name="resident_id" id="selected-resident-id">
+        <div class="form-row">
+          <label for="requested_datetime">Preferred Date & Time</label>
+          <input type="datetime-local" id="requested_datetime" name="requested_datetime" required>
+        </div>
+        <div class="form-row">
+          <label for="purpose">Purpose of Visit</label>
+          <textarea id="purpose" name="purpose" placeholder="e.g. Weekly family visit, bringing food..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-pill" style="width:100%; justify-content:center;">Send Request</button>
+      </form>
+    </div>
+
+    <!-- MY REQUESTS -->
+    <div class="section-header">
+      <h3 class="section-title">📋 My Visit Requests</h3>
+    </div>
+
+    {% if my_requests %}
+      <div class="brutalist-table-wrap">
+        <table class="brutalist-table">
+          <thead>
+            <tr>
+              <th>Resident</th>
+              <th>Requested Date</th>
+              <th>Purpose</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in my_requests %}
+              <tr>
+                <td>{{ req[1] }}</td>
+                <td>{{ req[2].strftime('%d %b %Y, %I:%M %p') if req[2] else '—' }}</td>
+                <td>{{ req[3] or '—' }}</td>
+                <td>
+                  {% if req[4] == 'Pending' %}
+                    <span class="badge badge-pending">⏳ Pending</span>
+                  {% elif req[4] == 'Approved' %}
+                    <span class="badge badge-approved">✅ Approved</span>
+                  {% elif req[4] == 'Rejected' %}
+                    <span class="badge badge-rejected">❌ Rejected</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No visit requests yet. Search for a resident to send one.</p>
+      </div>
+    {% endif %}
+  </main>
+
+  <script>
+    // Request Visit button handler
+    document.querySelectorAll('.btn-request-visit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const residentId = btn.getAttribute('data-resident-id');
+        const residentName = btn.getAttribute('data-resident-name');
+        
+        document.getElementById('selected-resident-id').value = residentId;
+        document.getElementById('selected-resident-name').textContent = residentName;
+        
+        const form = document.getElementById('visit-request-form');
+        form.style.display = 'block';
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+
+    // Auto-dismiss flash messages after 4 seconds
+    setTimeout(() => {
+      document.querySelectorAll('.flash-msg').forEach(el => {
+        el.style.transition = 'opacity 0.3s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      });
+    }, 4000);
+  </script>
+
+</body>
+</html>

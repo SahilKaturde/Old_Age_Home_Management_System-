@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Old Age Home</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="brand-icon">🏠</span>
+      <div>
+        <h1>Old Age Home</h1>
+        <div class="brand-subtitle">Admin Portal</div>
+      </div>
+    </div>
+    <div class="navbar-info">
+      <div>
+        <div class="user-name">{{ session['name'] }}</div>
+        <div class="user-detail">Administrator</div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-msg {{ category }}">
+            {% if category == 'success' %}✓{% else %}✗{% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- MAIN CONTENT -->
+  <main class="dashboard-main">
+    <h2 class="page-title">Admin Dashboard</h2>
+    <p class="page-subtitle">Overview of residents, visitors, and pending approvals.</p>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number">{{ total_residents }}</div>
+        <div class="stat-label">Total Residents</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">👤</div>
+        <div class="stat-number">{{ total_visitors }}</div>
+        <div class="stat-label">Total Visitors</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">{{ pending_requests_count }}</div>
+        <div class="stat-label">Pending Visit Requests</div>
+      </div>
+    </div>
+
+    <!-- PENDING VISIT REQUESTS -->
+    <div class="section-header">
+      <h3 class="section-title">⏳ Pending Visit Requests</h3>
+    </div>
+
+    {% if pending_requests %}
+      <div class="brutalist-table-wrap">
+        <table class="brutalist-table">
+            <thead>
+                <tr>
+                    <th>Visitor</th>
+                    <th>Resident</th>
+                    <th>Requested Date</th>
+                    <th>Purpose</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in pending_requests %}
+                <tr>
+                    <td>{{ req[1] }}</td>
+                    <td>{{ req[2] }}</td>
+                    <td>{{ req[3].strftime('%d %b %Y, %I:%M %p') if req[3] else '—' }}</td>
+                    <td>{{ req[4] or '—' }}</td>
+                    <td>
+                        <div style="display: flex; gap: 10px;">
+                            <form action="{{ url_for('admin.approve_visit', request_id=req[0]) }}" method="POST">
+                                <button type="submit" class="btn btn-success btn-sm btn-pill">Approve</button>
+                            </form>
+                            <form action="{{ url_for('admin.reject_visit', request_id=req[0]) }}" method="POST">
+                                <button type="submit" class="btn btn-primary btn-sm btn-pill" style="background:var(--accent-red); border-color:var(--accent-red); color: white;">Reject</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <p>No pending visit requests.</p>
+      </div>
+    {% endif %}
+
+    <!-- RESIDENTS LIST -->
+    <div class="section-header">
+      <h3 class="section-title">👥 Residents</h3>
+    </div>
+
+    {% if residents %}
+      <div class="brutalist-table-wrap">
+        <table class="brutalist-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Room</th>
+                    <th>Admission Date</th>
+                    <th>Emergency Contact</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in residents %}
+                <tr>
+                    <td>{{ res[1] }}</td>
+                    <td>{{ res[2] or '—' }}</td>
+                    <td>{{ res[3].strftime('%d %b %Y') if res[3] else '—' }}</td>
+                    <td>{{ res[4] or '—' }}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm btn-pill btn-view-meds" data-resident-id="{{ res[0] }}" data-resident-name="{{ res[1] }}">View Medicines</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <p>No active residents found.</p>
+      </div>
+    {% endif %}
+
+    <!-- VISITORS LIST -->
+    <div class="section-header">
+      <h3 class="section-title">👤 Registered Visitors</h3>
+    </div>
+
+    {% if visitors %}
+      <div class="brutalist-table-wrap">
+        <table class="brutalist-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Relation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vis in visitors %}
+                <tr>
+                    <td>{{ vis[1] }}</td>
+                    <td>{{ vis[2] or '—' }}</td>
+                    <td>{{ vis[3] or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👤</div>
+        <p>No visitors registered.</p>
+      </div>
+    {% endif %}
+  </main>
+
+  <!-- MEDICINE VIEWER MODAL -->
+  <div class="modal-overlay" id="medicine-modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <button class="modal-close" id="btn-close-med-modal" type="button">&times;</button>
+      <h2 style="margin-bottom: 20px;">Medicine Schedule</h2>
+      <h3 id="med-modal-resident-name" style="margin-bottom: 20px; font-weight: 600; color: #555;"></h3>
+      
+      <div id="med-modal-content">
+          <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Medicine Modal Logic
+    const medModal = document.getElementById('medicine-modal');
+    const closeMedModal = document.getElementById('btn-close-med-modal');
+    const medModalContent = document.getElementById('med-modal-content');
+    const medModalResidentName = document.getElementById('med-modal-resident-name');
+
+    document.querySelectorAll('.btn-view-meds').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const residentId = btn.getAttribute('data-resident-id');
+            const residentName = btn.getAttribute('data-resident-name');
+            
+            medModalResidentName.textContent = 'Resident: ' + residentName;
+            medModalContent.innerHTML = '<p>Loading schedules...</p>';
+            medModal.classList.add('active');
+
+            try {
+                const response = await fetch(`/admin/api/resident_medicines/${residentId}`);
+                if (!response.ok) throw new Error('Failed to fetch data');
+                const medicines = await response.json();
+
+                if (medicines.length === 0) {
+                    medModalContent.innerHTML = '<p>No active medicine schedules found for this resident.</p>';
+                    return;
+                }
+
+                let html = `
+                    <div class="brutalist-table-wrap" style="box-shadow: none; margin-bottom: 0;">
+                        <table class="brutalist-table">
+                            <thead>
+                                <tr>
+                                    <th>Medicine</th>
+                                    <th>Dosage</th>
+                                    <th>Frequency</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                medicines.forEach(med => {
+                    html += `
+                        <tr>
+                            <td><strong>${ med.medicine_name }</strong></td>
+                            <td>${ med.dosage }</td>
+                            <td><span class="badge" style="border-color: #ccc; color: #333;">${ med.frequency }</span></td>
+                            <td>${ med.reminder_time ? med.reminder_time : '—' }</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+                medModalContent.innerHTML = html;
+
+            } catch (error) {
+                console.error(error);
+                medModalContent.innerHTML = '<p style="color: red;">Error loading medicines. Please try again.</p>';
+            }
+        });
+    });
+
+    closeMedModal.addEventListener('click', () => {
+        medModal.classList.remove('active');
+    });
+
+    medModal.addEventListener('click', (e) => {
+        if (e.target === medModal) {
+            medModal.classList.remove('active');
+        }
+    });
+
+    // Auto-dismiss flash messages
+    setTimeout(() => {
+      document.querySelectorAll('.flash-msg').forEach(el => {
+        el.style.transition = 'opacity 0.3s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      });
+    }, 4000);
+  </script>
+
+</body>
+</html>

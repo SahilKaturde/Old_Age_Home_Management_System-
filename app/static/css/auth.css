@@ -1,0 +1,259 @@
+/* Illustrative Neo-Brutalist Auth Styling (HumanKind Inspired) */
+:root {
+  --primary: #000000;
+  --secondary: #ffffff;
+  --accent: #E6E6E6;
+  --bg: #F9F9F9;
+  --black: #000000;
+  --white: #ffffff;
+  --border-width: 2.5px;
+  --shadow: 8px 8px 0px #000000;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+body {
+  background-color: var(--bg);
+  background-image: url("https://www.transparenttextures.com/patterns/graphy.png");
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--black);
+  padding: 20px;
+}
+
+.auth-wrapper {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  max-width: 1200px;
+  width: 100%;
+  gap: 80px;
+  align-items: center;
+  padding: 20px;
+}
+
+.auth-hero {
+  text-align: left;
+}
+
+.auth-hero img {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 30px;
+  filter: grayscale(1);
+  border: var(--border-width) solid var(--black);
+  padding: 10px;
+  background: white;
+}
+
+.auth-hero h2 {
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 800;
+  line-height: 0.85;
+  text-transform: lowercase;
+  margin-bottom: 24px;
+  letter-spacing: -2px;
+}
+
+.auth-hero p {
+  font-size: clamp(16px, 1.5vw, 20px);
+  font-weight: 500;
+  color: #333;
+  max-width: 450px;
+  line-height: 1.4;
+}
+
+.auth-container {
+  background: var(--white);
+  border: var(--border-width) solid var(--black);
+  box-shadow: var(--shadow);
+  padding: 50px;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+
+.auth-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 35px;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 16px;
+  background: var(--white);
+  border: var(--border-width) solid var(--black);
+  border-radius: 0;
+  color: var(--black);
+  font-size: 16px;
+  font-weight: 600;
+  transition: transform 0.1s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  background: var(--accent);
+  transform: translate(-4px, -4px);
+  box-shadow: 4px 4px 0px var(--black);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 20px;
+  background: var(--black);
+  color: var(--white);
+  border: var(--border-width) solid var(--black);
+  border-radius: 50px; /* HumanKind rounded style */
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: all 0.2s ease;
+}
+
+.auth-btn:hover {
+  background: var(--white);
+  color: var(--black);
+  transform: translateY(-4px);
+  box-shadow: 0px 8px 0px var(--black);
+}
+
+.auth-footer {
+  margin-top: 40px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.auth-footer a {
+  color: var(--black);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Flash Messages */
+.flash-messages {
+  position: absolute;
+  top: -60px;
+  left: 0;
+  width: 100%;
+}
+
+.flash {
+  padding: 12px;
+  background: var(--white);
+  border: var(--border-width) solid var(--black);
+  box-shadow: 4px 4px 0px var(--black);
+  font-weight: 800;
+  text-align: center;
+}
+
+/* Tablet Breakpoint */
+@media (max-width: 1024px) {
+  .auth-wrapper {
+    gap: 40px;
+    padding: 40px;
+  }
+  
+  .auth-hero h2 {
+    font-size: 48px;
+  }
+}
+
+/* Small Desktop / Large Tablet */
+@media (max-width: 960px) {
+  .auth-wrapper {
+    grid-template-columns: 1fr;
+    gap: 60px;
+    max-width: 600px;
+  }
+
+  .auth-hero {
+    text-align: center;
+    order: 2;
+  }
+
+  .auth-hero p {
+    margin: 0 auto;
+  }
+
+  .auth-container {
+    order: 1;
+    margin: 0 auto;
+  }
+}
+
+/* Mobile Breakpoint */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  .auth-wrapper {
+    padding: 15px;
+    gap: 40px;
+  }
+
+  .auth-container {
+    padding: 30px 20px;
+  }
+
+  .auth-header h1 {
+    font-size: 24px;
+    margin-bottom: 25px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group input, .form-group select {
+    padding: 12px;
+  }
+
+  .auth-btn {
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  .flash {
+    font-size: 14px;
+  }
+
+  .flash-messages {
+    top: -50px;
+  }
+}
+
+/* Very Small Screens */
+@media (max-width: 400px) {
+  .auth-hero h2 {
+    font-size: 36px;
+  }
+  
+  .auth-hero p {
+    font-size: 14px;
+  }
+}

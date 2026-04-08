@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Old Age Home - System Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="auth-wrapper">
+    <!-- Left Hero Section (HumanKind Style) -->
+    <div class="auth-hero">
+      <img src="{{ url_for('static', filename='images/humankind_care_v2_.png') }}" alt="Old Age Home Illustration">
+      <h2>stay<br>human.</h2>
+      <p>A community driven by kindness, care, and the shared wisdom of our residents. Welcome to our home.</p>
+    </div>
+
+    <!-- Right Login Section -->
+    <div class="auth-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="auth-header">
+        <h1 id="auth-title">Welcome Home</h1>
+      </div>
+
+      <!-- Login Form (POST to /login) -->
+      <form id="login-form" action="{{ url_for('login') }}" method="POST">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" name="email" required placeholder="name@example.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label for="login-role">Login As</label>
+          <select id="login-role" name="role" required>
+            <option value="admin">Administrator</option>
+            <option value="resident">Resident</option>
+            <option value="visitor">Visitor</option>
+          </select>
+        </div>
+        <button type="submit" class="auth-btn">Sign In</button>
+        <div class="auth-footer">
+          Don't have an account? <a href="#" id="toggle-register">Create Account</a>
+        </div>
+      </form>
+
+      <!-- Register Form (POST to /register) -->
+      <form id="register-form" action="{{ url_for('register') }}" method="POST" style="display: none;">
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input type="text" id="reg-name" name="name" required placeholder="Jane Doe">
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email Address</label>
+          <input type="email" id="reg-email" name="email" required placeholder="name@example.com">
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" name="password" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label for="reg-role">Register As</label>
+          <select id="reg-role" name="role" required>
+            <option value="resident">Resident</option>
+            <option value="visitor">Visitor</option>
+          </select>
+        </div>
+        <button type="submit" class="auth-btn">Sign Up</button>
+        <div class="auth-footer">
+          Already have an account? <a href="#" id="toggle-login">Sign In</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const authTitle = document.getElementById('auth-title');
+    const toggleRegister = document.getElementById('toggle-register');
+    const toggleLogin = document.getElementById('toggle-login');
+
+    toggleRegister.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
+      authTitle.innerText = 'Create Account';
+    });
+
+    toggleLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerForm.style.display = 'none';
+      loginForm.style.display = 'block';
+      authTitle.innerText = 'Welcome Home';
+    });
+  </script>
+</body>
+</html>

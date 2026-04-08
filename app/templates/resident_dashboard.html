@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resident Dashboard — Old Age Home</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="brand-icon">🏠</span>
+      <div>
+        <h1>Old Age Home</h1>
+        <div class="brand-subtitle">Resident Portal</div>
+      </div>
+    </div>
+    <div class="navbar-info">
+      <div>
+        <div class="user-name">{{ session['name'] }}</div>
+        <div class="user-detail">Room {{ room_number }}</div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-msg {{ category }}">
+            {% if category == 'success' %}✓{% else %}✗{% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- MAIN CONTENT -->
+  <main class="dashboard-main">
+    <h2 class="page-title">Welcome, {{ session['name'] }}</h2>
+    <p class="page-subtitle">Here's your daily overview. Stay healthy, stay happy.</p>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">💊</div>
+        <div class="stat-number">{{ active_medicines }}</div>
+        <div class="stat-label">Active Medicines</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-number">{{ todays_reminders }}</div>
+        <div class="stat-label">Today's Reminders</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number">{{ upcoming_visits }}</div>
+        <div class="stat-label">Upcoming Visits</div>
+      </div>
+    </div>
+
+    <!-- MEDICINE SCHEDULE -->
+    <div class="section-header">
+      <h3 class="section-title">💊 Medicine Schedule</h3>
+      <button class="btn btn-primary btn-pill" id="btn-open-modal" type="button">+ Add Medicine</button>
+    </div>
+
+    {% if medicines %}
+      <div class="medicine-grid">
+        {% for med in medicines %}
+          <div class="medicine-card">
+            <div class="med-name">{{ med[1] }}</div>
+            <div class="med-details">
+              <span class="med-tag">{{ med[2] }}</span>
+              <span class="med-tag">{{ med[3] }}</span>
+            </div>
+            <div class="med-time">{{ med[4].strftime('%I:%M %p') if med[4] else '—' }}</div>
+            <div class="med-details">
+              <span class="med-tag">From: {{ med[5].strftime('%d %b %Y') if med[5] else '—' }}</span>
+              {% if med[6] %}
+                <span class="med-tag">To: {{ med[6].strftime('%d %b %Y') }}</span>
+              {% endif %}
+            </div>
+            <div class="med-actions">
+              <form action="{{ url_for('resident.take_medicine', medicine_id=med[0]) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-success btn-sm btn-pill">✓ Take Now</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">💊</div>
+        <p>No active medicines. Click "+ Add Medicine" to get started.</p>
+      </div>
+    {% endif %}
+
+    <!-- UPCOMING VISITS -->
+    <div class="section-header">
+      <h3 class="section-title">👥 Upcoming Approved Visits</h3>
+    </div>
+
+    {% if visits %}
+      <div class="brutalist-table-wrap">
+        <table class="brutalist-table">
+          <thead>
+            <tr>
+              <th>Visitor</th>
+              <th>Date & Time</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for visit in visits %}
+              <tr>
+                <td>{{ visit[0] }}</td>
+                <td>{{ visit[1].strftime('%d %b %Y, %I:%M %p') if visit[1] else '—' }}</td>
+                <td>{{ visit[2] or '—' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <p>No upcoming visits scheduled.</p>
+      </div>
+    {% endif %}
+  </main>
+
+  <!-- ADD MEDICINE MODAL -->
+  <div class="modal-overlay" id="add-medicine-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="btn-close-modal" type="button">&times;</button>
+      <h2>+ Add Medicine</h2>
+      <form action="{{ url_for('resident.add_medicine') }}" method="POST">
+        <div class="form-row">
+          <label for="medicine_name">Medicine Name</label>
+          <input type="text" id="medicine_name" name="medicine_name" required placeholder="e.g. Amlodipine">
+        </div>
+        <div class="form-row">
+          <label for="dosage">Dosage</label>
+          <input type="text" id="dosage" name="dosage" required placeholder="e.g. 5mg">
+        </div>
+        <div class="form-row">
+          <label for="frequency">Frequency</label>
+          <select id="frequency" name="frequency" required>
+            <option value="Once a day">Once a day</option>
+            <option value="Twice a day">Twice a day</option>
+            <option value="Three times a day">Three times a day</option>
+            <option value="Weekly">Weekly</option>
+            <option value="As needed">As needed</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="reminder_time">Reminder Time</label>
+          <input type="time" id="reminder_time" name="reminder_time" required>
+        </div>
+        <div class="form-row">
+          <label for="start_date">Start Date</label>
+          <input type="date" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-row">
+          <label for="end_date">End Date (Optional)</label>
+          <input type="date" id="end_date" name="end_date">
+        </div>
+        <button type="submit" class="btn btn-primary btn-pill" style="width:100%; justify-content:center;">Save Medicine</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Modal toggle
+    const modal = document.getElementById('add-medicine-modal');
+    const openBtn = document.getElementById('btn-open-modal');
+    const closeBtn = document.getElementById('btn-close-modal');
+
+    openBtn.addEventListener('click', () => {
+      modal.classList.add('active');
+    });
+
+    closeBtn.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+      }
+    });
+
+    // Auto-dismiss flash messages after 4 seconds
+    setTimeout(() => {
+      document.querySelectorAll('.flash-msg').forEach(el => {
+        el.style.transition = 'opacity 0.3s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      });
+    }, 4000);
+  </script>
+
+</body>
+</html>
