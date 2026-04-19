@@ -782,3 +782,335 @@ body {
     font-size: 20px;
   }
 }
+
+/* ============================================
+   CRUD ACTION BUTTONS
+   ============================================ */
+.crud-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-edit {
+  background: var(--accent-yellow);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0px var(--primary);
+}
+
+.btn-delete {
+  background: var(--accent-red);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.btn-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0px var(--primary);
+}
+
+/* ============================================
+   FORM GRID (2-Column Layout in Modals)
+   ============================================ */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 520px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   REPORT STAT CARD
+   ============================================ */
+.stat-card.report-card {
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--white);
+  border-color: #4a3d8f;
+}
+
+.stat-card.report-card::before {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.stat-card.report-card .stat-icon {
+  filter: none;
+}
+
+.stat-card.report-card .stat-label {
+  color: rgba(255,255,255,0.85);
+}
+
+.stat-card.report-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0px #4a3d8f;
+}
+
+/* ============================================
+   ANNUAL REPORT MODAL
+   ============================================ */
+.report-modal-content {
+  max-width: 950px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.report-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid var(--primary);
+}
+
+.report-header h2 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.report-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+.report-resident-card {
+  border: var(--border-width) solid var(--primary);
+  padding: 24px;
+  margin-bottom: 24px;
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.report-resident-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.report-resident-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.report-resident-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.report-dates-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.report-date-block {
+  background: var(--white);
+  border: 2px solid var(--primary);
+  padding: 14px 16px;
+}
+
+.report-date-block.joining {
+  border-left: 5px solid var(--accent-green);
+}
+
+.report-date-block.leaving {
+  border-left: 5px solid var(--accent-red);
+}
+
+.report-date-block.emergency {
+  border-left: 5px solid var(--accent-blue);
+}
+
+.report-date-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.report-date-value {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.report-medicine-section {
+  margin-top: 12px;
+}
+
+.report-medicine-section h4 {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.report-med-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border: 2px solid var(--primary);
+  font-size: 13px;
+}
+
+.report-med-table thead {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.report-med-table th {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+
+.report-med-table td {
+  padding: 10px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #eee;
+}
+
+.report-med-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================
+   REPORT SUMMARY BAR & SECTIONS
+   ============================================ */
+.report-summary-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.report-summary-item {
+  background: var(--white);
+  border: 2px solid var(--primary);
+  padding: 16px 20px;
+}
+
+.report-summary-count {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.report-summary-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+}
+
+.report-section-heading {
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+  margin-top: 30px;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid currentColor;
+}
+
+.departed-card {
+  border-left: 6px solid var(--accent-red) !important;
+  opacity: 0.85;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  /* Hide everything except the report */
+  body * {
+    visibility: hidden;
+  }
+
+  #annual-report-modal,
+  #annual-report-modal * {
+    visibility: visible;
+  }
+
+  #annual-report-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    display: block;
+    z-index: 9999;
+    padding: 0;
+  }
+
+  .report-modal-content {
+    max-width: 100%;
+    max-height: none;
+    box-shadow: none;
+    border: none;
+    padding: 20px;
+    overflow: visible;
+  }
+
+  .modal-close,
+  .no-print,
+  .navbar,
+  .flash-container {
+    display: none !important;
+  }
+
+  .report-resident-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #333;
+  }
+
+  .report-date-block {
+    border: 1px solid #333;
+  }
+
+  .report-med-table {
+    border: 1px solid #333;
+  }
+
+  .badge {
+    border: 1px solid #333;
+  }
+
+  .report-summary-item {
+    border: 1px solid #333;
+  }
+
+  .report-section-heading {
+    border-bottom: 2px solid #333;
+  }
+}
+

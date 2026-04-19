@@ -41,7 +41,7 @@
   {% endwith %}
 
   <!-- MAIN CONTENT -->
-  <main class="dashboard-main">
+  <main class="dashboard-main" id="dashboard-content">
     <h2 class="page-title">Admin Dashboard</h2>
     <p class="page-subtitle">Overview of residents, visitors, and pending approvals.</p>
 
@@ -60,7 +60,12 @@
       <div class="stat-card yellow">
         <div class="stat-icon">⏳</div>
         <div class="stat-number">{{ pending_requests_count }}</div>
-        <div class="stat-label">Pending Visit Requests</div>
+        <div class="stat-label">Pending Requests</div>
+      </div>
+      <div class="stat-card report-card" onclick="openAnnualReport()">
+        <div class="stat-icon">📊</div>
+        <div class="stat-number" style="font-size: 22px;">Annual</div>
+        <div class="stat-label">View Report →</div>
       </div>
     </div>
 
@@ -113,6 +118,7 @@
     <!-- RESIDENTS LIST -->
     <div class="section-header">
       <h3 class="section-title">👥 Residents</h3>
+      <button class="btn btn-success btn-sm btn-pill" onclick="openAddResidentModal()">+ Add Resident</button>
     </div>
 
     {% if residents %}
@@ -121,21 +127,39 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
                     <th>Room</th>
-                    <th>Admission Date</th>
-                    <th>Emergency Contact</th>
-                    <th>Action</th>
+                    <th>Admission</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for res in residents %}
                 <tr>
-                    <td>{{ res[1] }}</td>
+                    <td><strong>{{ res[1] }}</strong></td>
                     <td>{{ res[2] or '—' }}</td>
-                    <td>{{ res[3].strftime('%d %b %Y') if res[3] else '—' }}</td>
-                    <td>{{ res[4] or '—' }}</td>
+                    <td>{{ res[3] or '—' }}</td>
+                    <td>{{ res[5] or '—' }}</td>
+                    <td>{{ res[6] or '—' }}</td>
+                    <td>{{ res[7].strftime('%d %b %Y') if res[7] else '—' }}</td>
                     <td>
-                        <button class="btn btn-primary btn-sm btn-pill btn-view-meds" data-resident-id="{{ res[0] }}" data-resident-name="{{ res[1] }}">View Medicines</button>
+                      <span class="badge {% if res[9] == 'Active' %}badge-approved{% else %}badge-rejected{% endif %}">
+                        {{ res[9] or 'Active' }}
+                      </span>
+                    </td>
+                    <td>
+                        <div class="crud-actions">
+                            <button class="btn btn-primary btn-sm btn-pill btn-view-meds" 
+                                    data-resident-id="{{ res[0] }}" 
+                                    data-resident-name="{{ res[1] }}">💊 Meds</button>
+                            <button class="btn btn-sm btn-pill btn-edit" 
+                                    onclick="openEditResidentModal({{ res[0] }}, '{{ res[1] }}', '{{ res[2] }}', '{{ res[3] or '' }}', '{{ res[4].strftime('%Y-%m-%d') if res[4] else '' }}', '{{ res[5] or '' }}', '{{ res[6] or '' }}', '{{ res[8] or '' }}', '{{ res[9] or 'Active' }}', '{{ res[10].strftime('%Y-%m-%d') if res[10] else '' }}')">✏️ Edit</button>
+                            <button class="btn btn-sm btn-pill btn-delete" 
+                                    onclick="openDeleteModal('resident', {{ res[0] }}, '{{ res[1] }}')">🗑️</button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -145,13 +169,14 @@
     {% else %}
       <div class="empty-state">
         <div class="empty-icon">👥</div>
-        <p>No active residents found.</p>
+        <p>No residents found.</p>
       </div>
     {% endif %}
 
     <!-- VISITORS LIST -->
     <div class="section-header">
       <h3 class="section-title">👤 Registered Visitors</h3>
+      <button class="btn btn-success btn-sm btn-pill" onclick="openAddVisitorModal()">+ Add Visitor</button>
     </div>
 
     {% if visitors %}
@@ -160,16 +185,27 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Email</th>
                     <th>Phone</th>
                     <th>Relation</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for vis in visitors %}
                 <tr>
-                    <td>{{ vis[1] }}</td>
+                    <td><strong>{{ vis[1] }}</strong></td>
                     <td>{{ vis[2] or '—' }}</td>
                     <td>{{ vis[3] or '—' }}</td>
+                    <td>{{ vis[4] or '—' }}</td>
+                    <td>
+                        <div class="crud-actions">
+                            <button class="btn btn-sm btn-pill btn-edit" 
+                                    onclick="openEditVisitorModal({{ vis[0] }}, '{{ vis[1] }}', '{{ vis[2] }}', '{{ vis[3] or '' }}', '{{ vis[4] or '' }}')">✏️ Edit</button>
+                            <button class="btn btn-sm btn-pill btn-delete" 
+                                    onclick="openDeleteModal('visitor', {{ vis[0] }}, '{{ vis[1] }}')">🗑️</button>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -182,6 +218,204 @@
       </div>
     {% endif %}
   </main>
+
+
+  <!-- ============================================
+       MODALS
+       ============================================ -->
+
+  <!-- ADD RESIDENT MODAL -->
+  <div class="modal-overlay" id="add-resident-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('add-resident-modal')">&times;</button>
+      <h2>Add New Resident</h2>
+      <form action="{{ url_for('admin.add_resident') }}" method="POST">
+        <div class="form-row">
+          <label>Full Name *</label>
+          <input type="text" name="name" required>
+        </div>
+        <div class="form-row">
+          <label>Email *</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="form-row">
+          <label>Password *</label>
+          <input type="password" name="password" required>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Phone</label>
+            <input type="text" name="phone">
+          </div>
+          <div class="form-row">
+            <label>Date of Birth</label>
+            <input type="date" name="dob">
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Gender</label>
+            <select name="gender">
+              <option value="">— Select —</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Room Number</label>
+            <input type="text" name="room_number">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Emergency Contact</label>
+          <input type="text" name="emergency_contact">
+        </div>
+        <button type="submit" class="btn btn-success" style="width:100%; justify-content: center;">Add Resident</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT RESIDENT MODAL -->
+  <div class="modal-overlay" id="edit-resident-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('edit-resident-modal')">&times;</button>
+      <h2>Edit Resident</h2>
+      <form id="edit-resident-form" method="POST">
+        <div class="form-row">
+          <label>Full Name *</label>
+          <input type="text" name="name" id="edit-res-name" required>
+        </div>
+        <div class="form-row">
+          <label>Email *</label>
+          <input type="email" name="email" id="edit-res-email" required>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Phone</label>
+            <input type="text" name="phone" id="edit-res-phone">
+          </div>
+          <div class="form-row">
+            <label>Date of Birth</label>
+            <input type="date" name="dob" id="edit-res-dob">
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Gender</label>
+            <select name="gender" id="edit-res-gender">
+              <option value="">— Select —</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Room Number</label>
+            <input type="text" name="room_number" id="edit-res-room">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Emergency Contact</label>
+          <input type="text" name="emergency_contact" id="edit-res-emergency">
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Status</label>
+            <select name="status" id="edit-res-status">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Permanent Leave Date</label>
+            <input type="date" name="leave_date" id="edit-res-leave">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content: center;">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD VISITOR MODAL -->
+  <div class="modal-overlay" id="add-visitor-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('add-visitor-modal')">&times;</button>
+      <h2>Add New Visitor</h2>
+      <form action="{{ url_for('admin.add_visitor') }}" method="POST">
+        <div class="form-row">
+          <label>Full Name *</label>
+          <input type="text" name="name" required>
+        </div>
+        <div class="form-row">
+          <label>Email *</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="form-row">
+          <label>Password *</label>
+          <input type="password" name="password" required>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Phone</label>
+            <input type="text" name="phone">
+          </div>
+          <div class="form-row">
+            <label>Relation</label>
+            <input type="text" name="relation" placeholder="e.g. Son, Daughter">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success" style="width:100%; justify-content: center;">Add Visitor</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT VISITOR MODAL -->
+  <div class="modal-overlay" id="edit-visitor-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('edit-visitor-modal')">&times;</button>
+      <h2>Edit Visitor</h2>
+      <form id="edit-visitor-form" method="POST">
+        <div class="form-row">
+          <label>Full Name *</label>
+          <input type="text" name="name" id="edit-vis-name" required>
+        </div>
+        <div class="form-row">
+          <label>Email *</label>
+          <input type="email" name="email" id="edit-vis-email" required>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Phone</label>
+            <input type="text" name="phone" id="edit-vis-phone">
+          </div>
+          <div class="form-row">
+            <label>Relation</label>
+            <input type="text" name="relation" id="edit-vis-relation">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content: center;">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal-content" style="max-width: 440px; text-align: center;">
+      <button class="modal-close" onclick="closeModal('delete-modal')">&times;</button>
+      <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+      <h2 style="margin-bottom: 10px;">Confirm Delete</h2>
+      <p style="font-size: 15px; font-weight: 600; color: #555; margin-bottom: 30px;">
+        Are you sure you want to delete <strong id="delete-entity-name"></strong>? This action cannot be undone.
+      </p>
+      <form id="delete-form" method="POST">
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button type="button" class="btn btn-primary btn-pill" onclick="closeModal('delete-modal')">Cancel</button>
+          <button type="submit" class="btn btn-pill" style="background: var(--accent-red); color: white; border-color: var(--accent-red);">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MEDICINE VIEWER MODAL -->
   <div class="modal-overlay" id="medicine-modal">
@@ -196,8 +430,91 @@
     </div>
   </div>
 
+  <!-- ANNUAL REPORT MODAL -->
+  <div class="modal-overlay" id="annual-report-modal">
+    <div class="modal-content report-modal-content">
+      <button class="modal-close" onclick="closeModal('annual-report-modal')">&times;</button>
+      <div class="report-header">
+        <h2>📊 Annual Resident Report</h2>
+        <p class="report-date">Generated on: <span id="report-gen-date"></span></p>
+        <button class="btn btn-primary btn-sm btn-pill no-print" onclick="printReport()" style="margin-top: 10px;">🖨️ Print Report</button>
+      </div>
+      <div id="annual-report-content">
+        <p>Loading report data...</p>
+      </div>
+    </div>
+  </div>
+
+
   <script>
-    // Medicine Modal Logic
+    // ============================================
+    //  MODAL HELPERS
+    // ============================================
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    // Close modal on backdrop click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+        }
+      });
+    });
+
+    // ============================================
+    //  RESIDENT CRUD
+    // ============================================
+    function openAddResidentModal() {
+      openModal('add-resident-modal');
+    }
+
+    function openEditResidentModal(id, name, email, phone, dob, gender, room, emergency, status, leaveDate) {
+      document.getElementById('edit-res-name').value = name;
+      document.getElementById('edit-res-email').value = email;
+      document.getElementById('edit-res-phone').value = phone;
+      document.getElementById('edit-res-dob').value = dob;
+      document.getElementById('edit-res-gender').value = gender;
+      document.getElementById('edit-res-room').value = room;
+      document.getElementById('edit-res-emergency').value = emergency;
+      document.getElementById('edit-res-status').value = status;
+      document.getElementById('edit-res-leave').value = leaveDate;
+      document.getElementById('edit-resident-form').action = `/admin/edit_resident/${id}`;
+      openModal('edit-resident-modal');
+    }
+
+    // ============================================
+    //  VISITOR CRUD
+    // ============================================
+    function openAddVisitorModal() {
+      openModal('add-visitor-modal');
+    }
+
+    function openEditVisitorModal(id, name, email, phone, relation) {
+      document.getElementById('edit-vis-name').value = name;
+      document.getElementById('edit-vis-email').value = email;
+      document.getElementById('edit-vis-phone').value = phone;
+      document.getElementById('edit-vis-relation').value = relation;
+      document.getElementById('edit-visitor-form').action = `/admin/edit_visitor/${id}`;
+      openModal('edit-visitor-modal');
+    }
+
+    // ============================================
+    //  DELETE
+    // ============================================
+    function openDeleteModal(type, id, name) {
+      document.getElementById('delete-entity-name').textContent = name;
+      document.getElementById('delete-form').action = `/admin/delete_${type}/${id}`;
+      openModal('delete-modal');
+    }
+
+    // ============================================
+    //  MEDICINE MODAL
+    // ============================================
     const medModal = document.getElementById('medicine-modal');
     const closeMedModal = document.getElementById('btn-close-med-modal');
     const medModalContent = document.getElementById('med-modal-content');
@@ -261,13 +578,169 @@
         medModal.classList.remove('active');
     });
 
-    medModal.addEventListener('click', (e) => {
-        if (e.target === medModal) {
-            medModal.classList.remove('active');
-        }
-    });
+    // ============================================
+    //  ANNUAL REPORT
+    // ============================================
+    async function openAnnualReport() {
+      const modal = document.getElementById('annual-report-modal');
+      const content = document.getElementById('annual-report-content');
+      const dateEl = document.getElementById('report-gen-date');
 
-    // Auto-dismiss flash messages
+      dateEl.textContent = new Date().toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'long', year: 'numeric'
+      });
+
+      content.innerHTML = '<p style="text-align:center; padding: 40px;">Loading report data...</p>';
+      modal.classList.add('active');
+
+      try {
+        const response = await fetch('/admin/api/annual_report');
+        if (!response.ok) throw new Error('Failed to fetch report');
+        const data = await response.json();
+
+        if (data.length === 0) {
+          content.innerHTML = '<p style="text-align:center; padding: 40px;">No resident data found.</p>';
+          return;
+        }
+
+        // Separate into active and departed
+        const activeResidents = data.filter(r => r.status === 'Active');
+        const departedResidents = data.filter(r => r.status !== 'Active');
+
+        let html = '';
+
+        // Summary bar
+        html += `
+          <div class="report-summary-bar">
+            <div class="report-summary-item" style="border-left: 5px solid var(--accent-green);">
+              <div class="report-summary-count">${activeResidents.length}</div>
+              <div class="report-summary-label">Currently Residing</div>
+            </div>
+            <div class="report-summary-item" style="border-left: 5px solid var(--accent-red);">
+              <div class="report-summary-count">${departedResidents.length}</div>
+              <div class="report-summary-label">Departed / Left</div>
+            </div>
+            <div class="report-summary-item" style="border-left: 5px solid var(--accent-blue);">
+              <div class="report-summary-count">${data.length}</div>
+              <div class="report-summary-label">Total All Time</div>
+            </div>
+          </div>
+        `;
+
+        // Helper to render one resident card
+        function renderResidentCard(res, idx) {
+          const isActive = res.status === 'Active';
+          const leaveDisplay = (res.leave_date && res.leave_date !== '—') 
+            ? `<span style="color: var(--accent-red); font-weight: 800;">${res.leave_date}</span>` 
+            : (isActive 
+              ? `<span style="color: var(--accent-green); font-weight: 800;">Still Residing ✅</span>` 
+              : `<span style="color: var(--accent-red); font-weight: 800;">Left (date not recorded)</span>`);
+
+          return `
+            <div class="report-resident-card ${!isActive ? 'departed-card' : ''}">
+              <div class="report-resident-header">
+                <div>
+                  <h3 class="report-resident-name">${idx}. ${res.name}</h3>
+                  <div class="report-resident-meta">
+                    <span>Room: <strong>${res.room_number}</strong></span>
+                    <span>Gender: <strong>${res.gender}</strong></span>
+                    <span>DOB: <strong>${res.dob}</strong></span>
+                    <span>Phone: <strong>${res.phone}</strong></span>
+                  </div>
+                </div>
+                <span class="badge ${isActive ? 'badge-approved' : 'badge-rejected'}">${isActive ? '✅ Active' : '🚪 LEFT'}</span>
+              </div>
+
+              <div class="report-dates-row">
+                <div class="report-date-block joining">
+                  <div class="report-date-label">📅 Joining Date</div>
+                  <div class="report-date-value">${res.admission_date}</div>
+                </div>
+                <div class="report-date-block leaving">
+                  <div class="report-date-label">🚪 Permanent Leave Date</div>
+                  <div class="report-date-value">${leaveDisplay}</div>
+                </div>
+                <div class="report-date-block emergency">
+                  <div class="report-date-label">📞 Emergency Contact</div>
+                  <div class="report-date-value">${res.emergency_contact}</div>
+                </div>
+              </div>
+
+              <div class="report-medicine-section">
+                <h4>💊 Medicine History</h4>
+                ${res.medicines.length > 0 ? `
+                  <table class="report-med-table">
+                    <thead>
+                      <tr>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Frequency</th>
+                        <th>Time</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${res.medicines.map(med => `
+                        <tr>
+                          <td><strong>${med.medicine_name}</strong></td>
+                          <td>${med.dosage}</td>
+                          <td>${med.frequency}</td>
+                          <td>${med.reminder_time || '—'}</td>
+                          <td>${med.start_date || '—'}</td>
+                          <td>${med.end_date || '—'}</td>
+                          <td><span class="badge ${med.is_active ? 'badge-approved' : 'badge-rejected'}" style="font-size:10px;">${med.is_active ? 'Active' : 'Ended'}</span></td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                ` : '<p style="color: #888; font-weight: 600;">No medicine records found.</p>'}
+              </div>
+            </div>
+          `;
+        }
+
+        // Currently Residing section
+        if (activeResidents.length > 0) {
+          html += `<h3 class="report-section-heading" style="color: var(--accent-green);">✅ Currently Residing (${activeResidents.length})</h3>`;
+          activeResidents.forEach((res, idx) => {
+            html += renderResidentCard(res, idx + 1);
+          });
+        }
+
+        // Departed section
+        if (departedResidents.length > 0) {
+          html += `<h3 class="report-section-heading" style="color: var(--accent-red);">🚪 Departed Residents (${departedResidents.length})</h3>`;
+          departedResidents.forEach((res, idx) => {
+            html += renderResidentCard(res, idx + 1);
+          });
+        } else {
+          html += `
+            <h3 class="report-section-heading" style="color: var(--accent-red);">🚪 Departed Residents</h3>
+            <div class="empty-state" style="margin-bottom: 20px;">
+              <div class="empty-icon">✅</div>
+              <p>No residents have permanently left yet.</p>
+            </div>
+          `;
+        }
+
+        content.innerHTML = html;
+
+      } catch (error) {
+        console.error(error);
+        content.innerHTML = '<p style="color: red; text-align: center; padding: 40px;">Error loading report. Please try again.</p>';
+      }
+    }
+
+    function printReport() {
+      // Hide the modal overlay background and show only report content for printing
+      window.print();
+    }
+
+    // ============================================
+    //  AUTO-DISMISS FLASH
+    // ============================================
     setTimeout(() => {
       document.querySelectorAll('.flash-msg').forEach(el => {
         el.style.transition = 'opacity 0.3s';

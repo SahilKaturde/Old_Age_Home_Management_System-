@@ -34,6 +34,7 @@ CREATE TABLE resident (
     admission_date    DATE            DEFAULT CURRENT_DATE,
     emergency_contact VARCHAR(100),
     status            VARCHAR(10)     DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+    leave_date        DATE,
     created_at        TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
 );
 

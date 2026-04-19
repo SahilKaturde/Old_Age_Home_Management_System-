@@ -6,7 +6,7 @@ class Config:
     # Direct PostgreSQL Configuration
     DB_NAME = "Old_Age_Management_System_db"
     DB_USER = "postgres"
-    DB_PASSWORD = "[PASSWORD]"
+    DB_PASSWORD = "sahil@1234"
     DB_HOST = "localhost"
     DB_PORT = "5432"    
 
